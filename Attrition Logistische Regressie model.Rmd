@@ -1,0 +1,141 @@
+---
+title: "R Notebook"
+output: html_notebook
+---
+
+This is an [R Markdown](http://rmarkdown.rstudio.com) Notebook. When you execute code within the notebook, the results appear beneath the code. 
+
+Try executing this chunk by clicking the *Run* button within the chunk or by placing your cursor inside it and pressing *Ctrl+Shift+Enter*. 
+
+```{r}
+Attrition = read.csv('IBM_HR_Attrition.csv')
+```
+
+```{r}
+str(Attrition)
+```
+
+
+Als we kijken in het bestand zelf valt al snel op dat er veel meer mensen niet weg zijn gegaan dan wel. als we dus iedereen die niet weg is gegaan delen door het totaal komen we op 84% uit. dit gebruiken we als baseline om te meten of het model beter of slechter werkt dan simpelweg voorspellen dat niemand weg gaat.
+```{r}
+table(Attrition$Attrition)
+1233/1470
+```
+
+Attrition is nu een Factor, No/Yes. Omschrijven naar een Integer. 
+2 = Ja/Yes
+1= Nee/No
+Op basis van Alfabet de N van No komt eerder dan de Y van Yes.
+
+```{r}
+Attrition$Attrition = as.integer(Attrition$Attrition)
+```
+
+```{r}
+Attrition$Attrition[Attrition$Attrition == 1] <- 0
+Attrition$Attrition[Attrition$Attrition == 2] <- 1
+```
+
+
+Volgens smallbusiness.com is de definitie van attrition:
+
+Attrition is the normal life cycle of employment. Employees who move, retire, pass away or leave the company to raise a family or attend school represent the usual ebb and flow of staffers through a business. In other words, when it comes to attrition, employees are leaving not because they have a problem with your company or their jobs – it’s a matter of life unfolding. Attrition tends to be higher in companies located in transient cities and in organizations that hire older employees as a matter of practice.
+
+Op basis van deze informatie stellen we onze variabelen vast.
+We stellen dat de afhankelijke variabele Attrition is. De onafhankelijke variabelen die hiervan op invloed zijn:
+
+DistanceFromHome: Een te lange reistijd kan ervoor dat er minder tijd is voor andere dingen in het leven van een werknemer waardoor een werknemer voor de keuze tussen verhuizen of ander werk zoeken komt te staan.
+
+Inkomsten variabelen tellen we niet mee omdat dit van invloed is op een TurnoverRate en niet een AttritionRate.
+
+Job Involvement laat zien hoeveel iemand bezig is met zijn of haar werk, dit kan op den duur een mismatch worden met het persoonlijke doel van een medewerker waardoor hij of zij besluit te vertrekken.
+
+Work life balance gaat in op de balans tussen een werknemer zijn of haar leven en werk, dit kan dus veel effect op het besluit om wel of niet te vertrekken.
+
+Gender wordt ook meegeteld aangezien het wel bekend is dat mannen en vrouwen andere dingen uit het leven willen, dit kan dus bijdragen aan de beslissing om wel of niet te blijven.
+
+MaritalStatus wellicht heeft de invloed van een partner effect op de beslissing om wel of niet te blijven
+
+Total working years en Age, zoals de definitie al zegt is zijn deze tijdsvariabelen van effect op je attrition, we moeten deze dus meenemen.
+
+
+```{r}
+str(Attrition)
+```
+
+
+```{r}
+install.packages("caTools")
+library(caTools)
+```
+```{r}
+library(caTools)
+```
+
+
+we splitten met een ratio 0.75
+```{r}
+set.seed(214)
+split = sample.split(Attrition$Attrition, SplitRatio = 0.75)
+split
+```
+
+
+Nu zijn er 2 waardes toegekend: TRUE en FALSE, op basis van deze waardes zetten we ze nu in een set.
+
+```{r}
+attritionTrain = subset(Attrition, split == TRUE)
+attritionTest = subset(Attrition, split == FALSE)
+
+nrow(attritionTrain)
+nrow(attritionTest)
+```
+
+Nu bouwen we het model
+```{r}
+attritionLog = glm(Attrition ~ DistanceFromHome + JobInvolvement + WorkLifeBalance + Gender + MaritalStatus + Age + TotalWorkingYears, data=attritionTrain, family = binomial)
+
+summary(attritionLog)
+```
+
+Hier maken we voorspellingen op de trainingset.
+```{r}
+predictTrain = predict(attritionLog, type="response")
+
+summary(predictTrain)
+
+```
+
+```{r}
+tapply(predictTrain, attritionTrain$Attrition, mean)
+```
+
+We gaan nu een threshold zoeken om tegen te meten
+
+```{r}
+install.packages("ROCR")
+library(ROCR)
+```
+```{r}
+ROCRpred = prediction(predictTrain, attritionTrain$Attrition)
+```
+
+```{r}
+ROCRperf = performance(ROCRpred, "tpr", "fpr")
+```
+
+Nu gaan we het plotten (tekenen)
+```{r}
+plot(ROCRperf, colorize=TRUE, print.cutoffs.at=seq(0, 1, by=0.1),text.adj=c(-0.2, 1.7))
+```
+Op basis hiervan pakken we een threshold van 0.2 omdat we hierbij 60 procent goed voorspellen, tegen een FP van 0.21.
+
+```{r}
+predictTest = predict(attritionLog, type = "response", newdata = attritionTest)
+
+table(attritionTest$Attrition, predictTest >= 0.3)
+```
+```{r}
+(272+19)/367
+```
+79 procent. dit moet hoger
