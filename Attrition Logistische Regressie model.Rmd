@@ -3,9 +3,6 @@ title: "R Notebook"
 output: html_notebook
 ---
 
-This is an [R Markdown](http://rmarkdown.rstudio.com) Notebook. When you execute code within the notebook, the results appear beneath the code. 
-
-Try executing this chunk by clicking the *Run* button within the chunk or by placing your cursor inside it and pressing *Ctrl+Shift+Enter*. 
 
 ```{r}
 Attrition = read.csv('IBM_HR_Attrition.csv')
@@ -36,6 +33,24 @@ Attrition$Attrition[Attrition$Attrition == 1] <- 0
 Attrition$Attrition[Attrition$Attrition == 2] <- 1
 ```
 
+We beginnnen met een correlatie analyse om aan te tonen of er verbanden binnen de dataset gevonden kunnen worden.
+
+```{r}
+CorrelatieAn <- Attrition[, c("Attrition", "DistanceFromHome", "Education", "Age", "DailyRate", "EmployeeCount", "EmployeeNumber", "EnvironmentSatisfaction", "HourlyRate", "JobInvolvement", "JobLevel", "JobSatisfaction", "MonthlyIncome", "MonthlyRate", "NumCompaniesWorked", "PercentSalaryHike", "PerformanceRating", "StandardHours", "StockOptionLevel", "TotalWorkingYears", "TrainingTimesLastYear", "WorkLifeBalance", "YearsAtCompany", "YearsInCurrentRole", "YearsSinceLastPromotion", "YearsWithCurrManager" )]
+```
+
+```{r}
+cor(CorrelatieAn)
+```
+We zien enkele opvallende uitkomsten: er is een samenhang te zien tussen de MonthlyRate en de leeftijd en tijdsvariabelen zoals YearsWithCompany. Dit suggereert dat werknemers van IBM door langer te blijven werken meer verdienen. Het is dus te concluderen dat er een jaarlijkse opslag is voor werknemers van IBM.
+
+Ook zien we een sterke correlatie van 0.77 tussen de PerformanceRating en de PercentSalaryHike. Het is dus duidelijk te stellen dat IBM zijn werknemers opslag geeft op basis van hun prestaties. 
+
+Puur op basis van deze gegevens zouden we dus kunnen zeggen dat IBM een beloningsmodel heeft voor loyale (langer werkenden) hardwerkende (zet zich ook om in hogere beoordelingen) werknemers.
+
+Ook zien we dat de Attrition een aantal lage correlaties heeft over het hele bord. Het is daarom wellicht handig om dit verder te onderzoek doormiddel van een Logistieke Regressie Model. ALs het mogelijk is om een accuraat model hiermee te bouwen dan weten dat dit van grote invloed is.
+
+------------------------------------------------------------------------------------------------------------------------------
 
 Volgens smallbusiness.com is de definitie van attrition:
 
@@ -73,7 +88,7 @@ library(caTools)
 ```
 
 
-we splitten met een ratio 0.75
+we splitten met een ratio 0.75 zodat er in 1 set 75% van de observaties zitten en 25% in de andere set.
 ```{r}
 set.seed(214)
 split = sample.split(Attrition$Attrition, SplitRatio = 0.75)
@@ -90,10 +105,12 @@ attritionTest = subset(Attrition, split == FALSE)
 nrow(attritionTrain)
 nrow(attritionTest)
 ```
+Met de NROW functie controleren of de het overeenkomt met de 75% 25% regel.
+-----------------------------------------------------------------------------------------------------------------------------------
 
-Nu bouwen we het model
+Nu bouwen we het model.
 ```{r}
-attritionLog = glm(Attrition ~ DistanceFromHome + JobInvolvement + WorkLifeBalance + Gender + MaritalStatus + Age + TotalWorkingYears, data=attritionTrain, family = binomial)
+attritionLog = glm(Attrition ~ DistanceFromHome + JobInvolvement + WorkLifeBalance + Gender + MaritalStatus + TotalWorkingYears + Age, data=attritionTrain, family = binomial)
 
 summary(attritionLog)
 ```
@@ -133,9 +150,9 @@ Op basis hiervan pakken we een threshold van 0.2 omdat we hierbij 60 procent goe
 ```{r}
 predictTest = predict(attritionLog, type = "response", newdata = attritionTest)
 
-table(attritionTest$Attrition, predictTest >= 0.3)
+table(attritionTest$Attrition, predictTest >= 0.2)
 ```
 ```{r}
-(272+19)/367
+(228+32)/367
 ```
-79 procent. dit moet hoger
+71 procent. dit moet hoger
