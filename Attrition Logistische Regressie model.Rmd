@@ -3,25 +3,25 @@ title: "R Notebook"
 output: html_notebook
 ---
 
-
+Inlezen data
 ```{r}
 Attrition = read.csv('IBM_HR_Attrition.csv')
 ```
-
+Structuur data
 ```{r}
 str(Attrition)
 ```
 
 
-Als we kijken in het bestand zelf valt al snel op dat er veel meer mensen niet weg zijn gegaan dan wel. als we dus iedereen die niet weg is gegaan delen door het totaal komen we op 84% uit. dit gebruiken we als baseline om te meten of het model beter of slechter werkt dan simpelweg voorspellen dat niemand weg gaat.
+Wanneer we kijken in het bestand zelf valt al snel op dat er veel het percentage van mensen dat is gebleven hoger is dan het percentage dat is weggegaan. Als we dus het aantal mensen die zijn gebleven delen door het totaal komen we op 84% uit. Dit getal gebruiken we als baseline om te meten of het model beter of slechter werkt dan simpelweg voorspellen dat iedereen blijft.
 ```{r}
 table(Attrition$Attrition)
 1233/1470
 ```
 
 Attrition is nu een Factor, No/Yes. Omschrijven naar een Integer. 
-2 = Ja/Yes
-1= Nee/No
+1 = Ja/Yes
+0 = Nee/No
 Op basis van Alfabet de N van No komt eerder dan de Y van Yes.
 
 ```{r}
@@ -33,7 +33,7 @@ Attrition$Attrition[Attrition$Attrition == 1] <- 0
 Attrition$Attrition[Attrition$Attrition == 2] <- 1
 ```
 
-We beginnnen met een correlatie analyse om aan te tonen of er verbanden binnen de dataset gevonden kunnen worden.
+Als eerst doen we een correlatie analyse om aan te tonen of er verbanden binnen de dataset gevonden kunnen worden.
 
 ```{r}
 CorrelatieAn <- Attrition[, c("Attrition", "DistanceFromHome", "Education", "Age", "DailyRate", "EmployeeCount", "EmployeeNumber", "EnvironmentSatisfaction", "HourlyRate", "JobInvolvement", "JobLevel", "JobSatisfaction", "MonthlyIncome", "MonthlyRate", "NumCompaniesWorked", "PercentSalaryHike", "PerformanceRating", "StandardHours", "StockOptionLevel", "TotalWorkingYears", "TrainingTimesLastYear", "WorkLifeBalance", "YearsAtCompany", "YearsInCurrentRole", "YearsSinceLastPromotion", "YearsWithCurrManager" )]
@@ -42,15 +42,15 @@ CorrelatieAn <- Attrition[, c("Attrition", "DistanceFromHome", "Education", "Age
 ```{r}
 cor(CorrelatieAn)
 ```
-We zien enkele opvallende uitkomsten: er is een samenhang te zien tussen de MonthlyRate en de leeftijd en tijdsvariabelen zoals YearsWithCompany. Dit suggereert dat werknemers van IBM door langer te blijven werken meer verdienen. Het is dus te concluderen dat er een jaarlijkse opslag is voor werknemers van IBM.
+We zien enkele opvallende uitkomsten: er is een samenhang te zien tussen de MonthlyRate en de leeftijd en tijdsvariabelen zoals YearsWithCompany. Dit suggereert dat werknemers van IBM die langer werken meer verdienen. Het is dus te concluderen dat er een jaarlijkse opslag is voor werknemers van IBM.
 
-Ook zien we een sterke correlatie van 0.77 tussen de PerformanceRating en de PercentSalaryHike. Het is dus duidelijk te stellen dat IBM zijn werknemers opslag geeft op basis van hun prestaties. 
+Ook zien we een sterke correlatie van 0.77 tussen de PerformanceRating en de PercentSalaryHike. Het is dus ook te concluderen dat IBM haar werknemers opslag geeft op basis van hun prestaties. 
 
-Puur op basis van deze gegevens zouden we dus kunnen zeggen dat IBM een beloningsmodel heeft voor loyale (langer werkenden) hardwerkende (zet zich ook om in hogere beoordelingen) werknemers.
+Op basis van deze gegevens zouden we dus kunnen zeggen dat IBM een beloningsmodel heeft voor loyale (langer werkenden) hardwerkende (zet zich ook om in hogere beoordelingen) werknemers.
 
-Ook zien we dat de Attrition een aantal lage correlaties heeft over het hele bord. Het is daarom wellicht handig om dit verder te onderzoek doormiddel van een Logistieke Regressie Model. ALs het mogelijk is om een accuraat model hiermee te bouwen dan weten dat dit van grote invloed is.
+Ook zien we dat Attrition een aantal lage correlaties heeft over het hele bord. Het is daarom wellicht handig om dit verder te onderzoek doormiddel van een Logistieke Regressie Model. ALs het mogelijk is om een accuraat model hiermee te bouwen dan weten dat dit van grote invloed is.
 
-------------------------------------------------------------------------------------------------------------------------------
+------------------------------------------------------------------------------------------------------------------------------------------------
 
 Volgens smallbusiness.com is de definitie van attrition:
 
@@ -65,13 +65,13 @@ Inkomsten variabelen tellen we niet mee omdat dit van invloed is op een Turnover
 
 Job Involvement laat zien hoeveel iemand bezig is met zijn of haar werk, dit kan op den duur een mismatch worden met het persoonlijke doel van een medewerker waardoor hij of zij besluit te vertrekken.
 
-Work life balance gaat in op de balans tussen een werknemer zijn of haar leven en werk, dit kan dus veel effect op het besluit om wel of niet te vertrekken.
+Work life balance gaat in op de balans tussen een werknemer zijn of haar leven en werk, dit kan dus veel effect hebben op het besluit om wel of niet te vertrekken.
 
 Gender wordt ook meegeteld aangezien het wel bekend is dat mannen en vrouwen andere dingen uit het leven willen, dit kan dus bijdragen aan de beslissing om wel of niet te blijven.
 
-MaritalStatus wellicht heeft de invloed van een partner effect op de beslissing om wel of niet te blijven
+MaritalStatus, wellicht heeft de invloed van een partner effect op de beslissing om wel of niet te blijven.
 
-Total working years en Age, zoals de definitie al zegt is zijn deze tijdsvariabelen van effect op je attrition, we moeten deze dus meenemen.
+Total working years en Age, zoals de definitie al zegt zijn deze tijdsvariabelen van effect op je attrition, we moeten deze dus meenemen.
 
 
 ```{r}
