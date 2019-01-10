@@ -106,7 +106,7 @@ nrow(attritionTrain)
 nrow(attritionTest)
 ```
 
-Met de NROW functie controleren of de overeenkomt met de 75% 25% regel.
+Met de NROW functie controleren op de overeenkomt met de 75% 25% regel die we hierboven hebben beschreven.
 
 -----------------------------------------------------------------------------------------------------------------------------------
 
